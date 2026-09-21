@@ -6,9 +6,8 @@
   <title>Controle de Vendas - Sequilhos Artesanais</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#d97706">
+  <meta name="theme-color" content="#d97706">
 </head>
-
 <body>
 
   <div class="container">
@@ -50,14 +49,14 @@
         </div>
         <div class="form-group">
           <label for="desc-venda">Sabor / Produto:</label>
-          <input type="text" id="desc-venda" placeholder="Ex: Sequilho de Coco 200g" required>
+          <input type="text" id="desc-venda" placeholder="Ex: Sequilho de Coco" required>
         </div>
         <div class="form-group">
-          <label for="qtd-venda">Quantidade:</label>
-          <input type="number" id="qtd-venda" min="1" value="1" required>
+          <label for="qtd-venda">Peso (kg):</label>
+          <input type="number" id="qtd-venda" step="0.001" min="0" placeholder="Ex: 0.250 para 250g" required>
         </div>
         <div class="form-group">
-          <label for="valor-venda">Preço Unitário (R$):</label>
+          <label for="valor-venda">Preço por kg (R$):</label>
           <input type="number" id="valor-venda" step="0.01" min="0" placeholder="0,00" required>
         </div>
         <button type="submit" class="btn btn-venda">Salvar Venda</button>
@@ -95,8 +94,8 @@
             <tr>
               <th>Data</th>
               <th>Produto</th>
-              <th>Qtd</th>
-              <th>Unit.</th>
+              <th>Peso</th>
+              <th>Preço/kg</th>
               <th>Total</th>
               <th>Ação</th>
             </tr>
@@ -128,10 +127,9 @@
 
   <script src="script.js"></script>
   <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
-</script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
 </body>
 </html>
-

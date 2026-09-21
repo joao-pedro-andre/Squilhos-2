@@ -1,10 +1,9 @@
-/* Configurações Globais e Cores Artesanais */
 :root {
-  --primary: #d97706;       /* Tom caramelo/dourado */
+  --primary: #d97706;
   --primary-hover: #b45309;
-  --bg-color: #fef3c7;      /* Amarelo/bege suave */
+  --bg-color: #fef3c7;
   --card-bg: #ffffff;
-  --text-color: #451a03;    /* Marrom escuro */
+  --text-color: #451a03;
   --green: #15803d;
   --red: #b91c1c;
   --border-radius: 12px;
@@ -47,7 +46,6 @@ header p {
   font-size: 0.95rem;
 }
 
-/* Dashboard Cards */
 .dashboard {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -79,7 +77,6 @@ header p {
 .card-despesas span { color: var(--red); }
 .card-lucro span { color: var(--primary); }
 
-/* Navegação por Abas */
 .tabs {
   display: flex;
   gap: 10px;
@@ -113,7 +110,6 @@ header p {
   display: block;
 }
 
-/* Formulários */
 form {
   display: flex;
   flex-direction: column;
@@ -160,7 +156,6 @@ input:focus {
 .btn-insumo { background-color: var(--primary); }
 .btn-insumo:hover { background-color: var(--primary-hover); }
 
-/* Tabelas de Histórico */
 .table-responsive {
   overflow-x: auto;
   margin-bottom: 25px;
@@ -192,5 +187,3 @@ th {
   border-radius: 4px;
   cursor: pointer;
 }
-
-

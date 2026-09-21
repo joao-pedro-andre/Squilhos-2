@@ -27,16 +27,33 @@ function openTab(evt, tabName) {
   evt.currentTarget.classList.add('active');
 }
 
+// Função para converter texto/número com vírgula ou ponto em número preciso
+function parseNumeroPreciso(valor) {
+  if (typeof valor === 'number') return valor;
+  if (!valor) return 0;
+  // Substitui vírgula por ponto se o utilizador digitar com vírgula no teclado do telemóvel
+  const limpo = valor.toString().replace(',', '.');
+  return parseFloat(limpo) || 0;
+}
+
 // Lançamento de Venda
 document.getElementById('form-venda').addEventListener('submit', (e) => {
   e.preventDefault();
+
+  const pesoDigitado = parseNumeroPreciso(document.getElementById('qtd-venda').value);
+  const precoKgDigitado = parseNumeroPreciso(document.getElementById('valor-venda').value);
+
+  if (pesoDigitado <= 0 || precoKgDigitado <= 0) {
+    alert("Por favor, insira valores válidos para o peso e para o preço.");
+    return;
+  }
 
   const novaVenda = {
     id: Date.now(),
     data: document.getElementById('data-venda').value,
     descricao: document.getElementById('desc-venda').value,
-    qtd: parseInt(document.getElementById('qtd-venda').value),
-    valorUnitario: parseFloat(document.getElementById('valor-venda').value)
+    qtd: pesoDigitado,
+    valorUnitario: precoKgDigitado
   };
 
   vendas.push(novaVenda);
@@ -46,18 +63,24 @@ document.getElementById('form-venda').addEventListener('submit', (e) => {
   document.getElementById('form-venda').reset();
   const hoje = new Date().toISOString().split('T')[0];
   document.getElementById('data-venda').value = hoje;
-  document.getElementById('qtd-venda').value = 1;
 });
 
 // Lançamento de Insumo
 document.getElementById('form-insumo').addEventListener('submit', (e) => {
   e.preventDefault();
 
+  const valorInsumoDigitado = parseNumeroPreciso(document.getElementById('valor-insumo').value);
+
+  if (valorInsumoDigitado <= 0) {
+    alert("Por favor, insira um valor válido para o insumo.");
+    return;
+  }
+
   const novoInsumo = {
     id: Date.now(),
     data: document.getElementById('data-insumo').value,
     descricao: document.getElementById('desc-insumo').value,
-    valor: parseFloat(document.getElementById('valor-insumo').value)
+    valor: valorInsumoDigitado
   };
 
   insumos.push(novoInsumo);
@@ -88,6 +111,16 @@ function salvarDados() {
   localStorage.setItem('insumos_sequilhos', JSON.stringify(insumos));
 }
 
+// Multiplicação financeira precisa para evitar erros de centavos
+function calcularTotalItem(peso, precoKg) {
+  return Math.round((peso * precoKg) * 100) / 100;
+}
+
+// Formata o peso para exibição (ex: 0.25 kg ou 1.5 kg)
+function formatarPeso(peso) {
+  return peso.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 3 }) + ' kg';
+}
+
 // Atualiza a Tela (Resumo e Tabelas)
 function atualizarApp() {
   let totalVendas = 0;
@@ -98,15 +131,15 @@ function atualizarApp() {
   tabelaVendas.innerHTML = '';
 
   vendas.forEach(v => {
-    const totalItem = v.qtd * v.valorUnitario;
+    const totalItem = calcularTotalItem(v.qtd, v.valorUnitario);
     totalVendas += totalItem;
 
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${formatarData(v.data)}</td>
       <td>${v.descricao}</td>
-      <td>${v.qtd}</td>
-      <td>${formatarMoeda(v.valorUnitario)}</td>
+      <td>${formatarPeso(v.qtd)}</td>
+      <td>${formatarMoeda(v.valorUnitario)}/kg</td>
       <td>${formatarMoeda(totalItem)}</td>
       <td><button class="btn-delete" onclick="removerVenda(${v.id})">X</button></td>
     `;
@@ -131,7 +164,7 @@ function atualizarApp() {
   });
 
   // Atualizar Cards do Dashboard
-  const lucroLiquido = totalVendas - totalInsumos;
+  const lucroLiquido = Math.round((totalVendas - totalInsumos) * 100) / 100;
 
   document.getElementById('total-vendas').textContent = formatarMoeda(totalVendas);
   document.getElementById('total-despesas').textContent = formatarMoeda(totalInsumos);
@@ -147,5 +180,4 @@ function formatarData(dataISO) {
   if (!dataISO) return '';
   const partes = dataISO.split('-');
   return `${partes[2]}/${partes[1]}/${partes[0]}`;
-}   
-
+}
