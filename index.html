@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Vendas - Sequilhos Artesanais</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d97706">
+</head>
+
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🍪 Sequilhos da Gal</h1>
+      <p>Controle de Vendas e Insumos</p>
+    </header>
+
+    <!-- Cards de Resumo Financeiro -->
+    <section class="dashboard">
+      <div class="card card-vendas">
+        <h3>Total Vendido</h3>
+        <span id="total-vendas">R$ 0,00</span>
+      </div>
+      <div class="card card-despesas">
+        <h3>Total Insumos</h3>
+        <span id="total-despesas">R$ 0,00</span>
+      </div>
+      <div class="card card-lucro">
+        <h3>Lucro Líquido</h3>
+        <span id="lucro-liquido">R$ 0,00</span>
+      </div>
+    </section>
+
+    <!-- Navegação de Abas -->
+    <nav class="tabs">
+      <button class="tab-btn active" onclick="openTab(event, 'vendasTab')">💰 Registrar Venda</button>
+      <button class="tab-btn" onclick="openTab(event, 'insumosTab')">🛒 Registrar Insumo</button>
+      <button class="tab-btn" onclick="openTab(event, 'historicoTab')">📋 Histórico Completo</button>
+    </nav>
+
+    <!-- Aba 1: Vendas -->
+    <div id="vendasTab" class="tab-content active">
+      <h2>Nova Venda</h2>
+      <form id="form-venda">
+        <div class="form-group">
+          <label for="data-venda">Data:</label>
+          <input type="date" id="data-venda" required>
+        </div>
+        <div class="form-group">
+          <label for="desc-venda">Sabor / Produto:</label>
+          <input type="text" id="desc-venda" placeholder="Ex: Sequilho de Coco 200g" required>
+        </div>
+        <div class="form-group">
+          <label for="qtd-venda">Quantidade:</label>
+          <input type="number" id="qtd-venda" min="1" value="1" required>
+        </div>
+        <div class="form-group">
+          <label for="valor-venda">Preço Unitário (R$):</label>
+          <input type="number" id="valor-venda" step="0.01" min="0" placeholder="0,00" required>
+        </div>
+        <button type="submit" class="btn btn-venda">Salvar Venda</button>
+      </form>
+    </div>
+
+    <!-- Aba 2: Insumos (Despesas) -->
+    <div id="insumosTab" class="tab-content">
+      <h2>Novo Insumo / Ingrediente</h2>
+      <form id="form-insumo">
+        <div class="form-group">
+          <label for="data-insumo">Data:</label>
+          <input type="date" id="data-insumo" required>
+        </div>
+        <div class="form-group">
+          <label for="desc-insumo">Descrição do Insumo:</label>
+          <input type="text" id="desc-insumo" placeholder="Ex: Polvilho doce, Leite condensado, Sacos plásticos" required>
+        </div>
+        <div class="form-group">
+          <label for="valor-insumo">Valor Total Pago (R$):</label>
+          <input type="number" id="valor-insumo" step="0.01" min="0" placeholder="0,00" required>
+        </div>
+        <button type="submit" class="btn btn-insumo">Salvar Insumo</button>
+      </form>
+    </div>
+
+    <!-- Aba 3: Histórico -->
+    <div id="historicoTab" class="tab-content">
+      <h2>Histórico de Registros</h2>
+
+      <h3>Vendas Realizadas</h3>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Produto</th>
+              <th>Qtd</th>
+              <th>Unit.</th>
+              <th>Total</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-vendas">
+            <!-- Preenchido via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Insumos / Despesas</h3>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Insumo</th>
+              <th>Valor Total</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-insumos">
+            <!-- Preenchido via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+</body>
+</html>
+
