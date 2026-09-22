@@ -1,4 +1,5 @@
-const CACHE_NAME = 'sequilhos-v1';
+// Altere de 'v1' para 'v2' para forçar o telemóvel a atualizar
+const CACHE_NAME = 'sequilhos-cache-v2';
 const assets = [
   './',
   './index.html',
