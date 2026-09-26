@@ -1,8 +1,8 @@
-// Recupera os dados salvos ou inicializa listas vazias
+
 let vendas = JSON.parse(localStorage.getItem('vendas_sequilhos')) || [];
 let insumos = JSON.parse(localStorage.getItem('insumos_sequilhos')) || [];
 
-// Define a data de hoje como padrão nos campos de data
+
 document.addEventListener('DOMContentLoaded', () => {
   const hoje = new Date().toISOString().split('T')[0];
   document.getElementById('data-venda').value = hoje;
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   atualizarApp();
 });
 
-// Troca de Abas
+
 function openTab(evt, tabName) {
   const tabContents = document.getElementsByClassName('tab-content');
   for (let i = 0; i < tabContents.length; i++) {
@@ -27,16 +27,16 @@ function openTab(evt, tabName) {
   evt.currentTarget.classList.add('active');
 }
 
-// Função para converter texto/número com vírgula ou ponto em número preciso
+
 function parseNumeroPreciso(valor) {
   if (typeof valor === 'number') return valor;
   if (!valor) return 0;
-  // Substitui vírgula por ponto se o utilizador digitar com vírgula no teclado do telemóvel
+  
   const limpo = valor.toString().replace(',', '.');
   return parseFloat(limpo) || 0;
 }
 
-// Lançamento de Venda
+
 document.getElementById('form-venda').addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -65,7 +65,7 @@ document.getElementById('form-venda').addEventListener('submit', (e) => {
   document.getElementById('data-venda').value = hoje;
 });
 
-// Lançamento de Insumo
+
 document.getElementById('form-insumo').addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -92,7 +92,7 @@ document.getElementById('form-insumo').addEventListener('submit', (e) => {
   document.getElementById('data-insumo').value = hoje;
 });
 
-// Excluir Lançamentos
+
 function removerVenda(id) {
   vendas = vendas.filter(v => v.id !== id);
   salvarDados();
@@ -105,28 +105,28 @@ function removerInsumo(id) {
   atualizarApp();
 }
 
-// Salva no LocalStorage
+
 function salvarDados() {
   localStorage.setItem('vendas_sequilhos', JSON.stringify(vendas));
   localStorage.setItem('insumos_sequilhos', JSON.stringify(insumos));
 }
 
-// Multiplicação financeira precisa para evitar erros de centavos
+
 function calcularTotalItem(peso, precoKg) {
   return Math.round((peso * precoKg) * 100) / 100;
 }
 
-// Formata o peso para exibição (ex: 0.25 kg ou 1.5 kg)
+
 function formatarPeso(peso) {
   return peso.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 3 }) + ' kg';
 }
 
-// Atualiza a Tela (Resumo e Tabelas)
+
 function atualizarApp() {
   let totalVendas = 0;
   let totalInsumos = 0;
 
-  // Atualizar Tabela de Vendas
+  
   const tabelaVendas = document.getElementById('tabela-vendas');
   tabelaVendas.innerHTML = '';
 
@@ -146,7 +146,7 @@ function atualizarApp() {
     tabelaVendas.appendChild(row);
   });
 
-  // Atualizar Tabela de Insumos
+  
   const tabelaInsumos = document.getElementById('tabela-insumos');
   tabelaInsumos.innerHTML = '';
 
@@ -163,7 +163,7 @@ function atualizarApp() {
     tabelaInsumos.appendChild(row);
   });
 
-  // Atualizar Cards do Dashboard
+  
   const lucroLiquido = Math.round((totalVendas - totalInsumos) * 100) / 100;
 
   document.getElementById('total-vendas').textContent = formatarMoeda(totalVendas);
@@ -171,7 +171,7 @@ function atualizarApp() {
   document.getElementById('lucro-liquido').textContent = formatarMoeda(lucroLiquido);
 }
 
-// Funções Auxiliares de Formatação
+
 function formatarMoeda(valor) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
