@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   atualizarPreviaVenda();
   atualizarPreviaEncomenda();
+  document.getElementById('busca-encomenda').addEventListener('input', atualizarListaEncomendas);
+  document.getElementById('filtro-encomenda').addEventListener('change', atualizarListaEncomendas);
   atualizarApp();
 });
 
@@ -245,16 +247,50 @@ function atualizarApp() {
   });
 
 
-  const tabelaEncomendas = document.getElementById('tabela-encomendas');
-  tabelaEncomendas.innerHTML = '';
+  atualizarListaEncomendas();
+
+  const lucroLiquido = Math.round((totalVendas - totalInsumos) * 100) / 100;
+  document.getElementById('total-vendas').textContent = formatarMoeda(totalVendas);
+  document.getElementById('total-despesas').textContent = formatarMoeda(totalInsumos);
+  document.getElementById('lucro-liquido').textContent = formatarMoeda(lucroLiquido);
+}
+
+function atualizarListaEncomendas() {
+  const tabela = document.getElementById('tabela-encomendas');
+  if (!tabela) return;
+  const hoje = obterDataLocal();
+  const limite = new Date();
+  limite.setDate(limite.getDate() + 7);
+  const dataLimite = `${limite.getFullYear()}-${String(limite.getMonth()+1).padStart(2,'0')}-${String(limite.getDate()).padStart(2,'0')}`;
   const pendentes = encomendas.filter(e => e.status === 'pendente');
+  const atrasadas = pendentes.filter(e => e.dataEntrega && e.dataEntrega < hoje);
+  const proximas = pendentes.filter(e => e.dataEntrega >= hoje && e.dataEntrega <= dataLimite);
   const valorPendente = pendentes.reduce((soma, e) => soma + calcularTotalItem(e), 0);
   document.getElementById('resumo-encomendas').innerHTML =
-    `<strong>${pendentes.length}</strong> pedido(s) pendente(s) · <strong>${formatarMoeda(valorPendente)}</strong> em vendas previstas`;
-  pendentes.sort((a, b) => (a.dataEntrega || '').localeCompare(b.dataEntrega || '')).forEach(e => {
+    `<strong>${pendentes.length}</strong> pedido(s) pendente(s) · <strong>${formatarMoeda(valorPendente)}</strong> em vendas previstas
+    <span class="order-alerts">${atrasadas.length ? `<strong class="overdue-text">${atrasadas.length} atrasada(s)</strong>` : '<strong class="ok-text">Nenhuma atrasada</strong>'}
+    · ${proximas.length} para os próximos 7 dias</span>`;
+
+  const filtro = document.getElementById('filtro-encomenda').value;
+  const busca = document.getElementById('busca-encomenda').value.trim().toLocaleLowerCase('pt-BR');
+  const lista = pendentes.filter(e => {
+    const data = e.dataEntrega || '';
+    const correspondeBusca = `${e.cliente || ''} ${e.produto || ''}`.toLocaleLowerCase('pt-BR').includes(busca);
+    const correspondeFiltro = filtro === 'todas'
+      || (filtro === 'atrasadas' && data && data < hoje)
+      || (filtro === 'hoje' && data === hoje)
+      || (filtro === 'proximas' && data >= hoje && data <= dataLimite);
+    return correspondeBusca && correspondeFiltro;
+  }).sort((a,b) => (a.dataEntrega || '').localeCompare(b.dataEntrega || ''));
+
+  tabela.innerHTML = '';
+  lista.forEach(e => {
+    const atrasada = e.dataEntrega && e.dataEntrega < hoje;
+    const dataLabel = formatarData(e.dataEntrega) + (atrasada ? ' · ATRASADA' : (e.dataEntrega === hoje ? ' · HOJE' : ''));
     const row = document.createElement('tr');
+    row.className = atrasada ? 'order-overdue' : '';
     row.innerHTML = `
-      <td>${formatarData(e.dataEntrega)}</td>
+      <td>${escaparHTML(dataLabel)}</td>
       <td>${escaparHTML(e.cliente)}</td>
       <td>${escaparHTML(e.produto)}</td>
       <td>${formatarPeso(e.qtd)}</td>
@@ -264,16 +300,11 @@ function atualizarApp() {
         <button class="btn-complete" onclick="concluirEncomenda(${Number(e.id)})">Entregue</button>
         <button class="btn-delete" onclick="removerEncomenda(${Number(e.id)})" aria-label="Excluir encomenda">X</button>
       </td>`;
-    tabelaEncomendas.appendChild(row);
+    tabela.appendChild(row);
   });
-  if (!pendentes.length) {
-    tabelaEncomendas.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhuma encomenda pendente.</td></tr>';
+  if (!lista.length) {
+    tabela.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhuma encomenda encontrada neste filtro.</td></tr>';
   }
-
-  const lucroLiquido = Math.round((totalVendas - totalInsumos) * 100) / 100;
-  document.getElementById('total-vendas').textContent = formatarMoeda(totalVendas);
-  document.getElementById('total-despesas').textContent = formatarMoeda(totalInsumos);
-  document.getElementById('lucro-liquido').textContent = formatarMoeda(lucroLiquido);
 }
 
 function formatarMoeda(valor) {
