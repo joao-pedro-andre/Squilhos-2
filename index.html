@@ -30,7 +30,7 @@
 
     <nav class="tabs">
       <button class="tab-btn active" onclick="openTab(event, 'vendasTab')">💰 Registrar Venda</button>
-      <button class="tab-btn" onclick="openTab(event, 'encomendasTab')">📦 Encomendas</button>
+      <button class="tab-btn" onclick="openTab(event, 'estoqueTab')">📦 Estoque</button>
       <button class="tab-btn" onclick="openTab(event, 'insumosTab')">🛒 Registrar Insumo</button>
       <button class="tab-btn" onclick="openTab(event, 'historicoTab')">📋 Histórico Completo</button>
     </nav>
@@ -70,66 +70,26 @@
       </form>
     </div>
 
-    <div id="encomendasTab" class="tab-content">
-      <h2>Nova Encomenda</h2>
-      <p class="form-hint">Cadastre pedidos para entrega futura. Eles só entram no faturamento quando forem marcados como entregues.</p>
-      <form id="form-encomenda">
+    <div id="estoqueTab" class="tab-content">
+      <h2>Estoque disponível</h2>
+      <p class="form-hint">Cadastre quantos pacotinhos de cada sabor você tem disponíveis. Cada pacotinho corresponde a 250 g (0,250 kg). As vendas descontam o estoque automaticamente.</p>
+      <form id="form-estoque">
         <div class="form-group">
-          <label for="data-encomenda">Data prevista para entrega:</label>
-          <input type="date" id="data-encomenda" required>
-        </div>
-        <div class="form-group">
-          <label for="cliente-encomenda">Nome do cliente:</label>
-          <input type="text" id="cliente-encomenda" placeholder="Ex: Maria Silva" maxlength="80" required>
+          <label for="produto-estoque">Sabor / Produto:</label>
+          <input type="text" id="produto-estoque" placeholder="Ex: Sequilho de Coco" maxlength="100" required>
         </div>
         <div class="form-group">
-          <label for="produto-encomenda">Sabor / Produto:</label>
-          <input type="text" id="produto-encomenda" placeholder="Ex: Sequilho de Coco" maxlength="100" required>
+          <label for="qtd-estoque">Quantidade de pacotinhos:</label>
+          <input type="number" id="qtd-estoque" step="1" min="1" placeholder="Ex: 10" required>
         </div>
-        <div class="form-group">
-          <label for="qtd-encomenda">Quantidade (kg):</label>
-          <input type="number" id="qtd-encomenda" step="0.001" min="0.001" placeholder="Ex: 2 para 2 kg" required>
-        </div>
-        <div class="form-group">
-          <label for="valor-encomenda">Preço por 250 g (R$):</label>
-          <input type="number" id="valor-encomenda" step="0.01" min="0.01" placeholder="Ex: 15,00" required>
-        </div>
-        <div class="form-group">
-          <label for="obs-encomenda">Observações (opcional):</label>
-          <input type="text" id="obs-encomenda" maxlength="180" placeholder="Ex: retirar à tarde, sem embalagem...">
-        </div>
-        <div class="sale-preview">
-          <div>
-            <span class="preview-label">Porções de 250 g</span>
-            <strong id="porcoes-encomenda">0</strong>
-          </div>
-          <div>
-            <span class="preview-label">Valor previsto</span>
-            <strong id="total-encomenda">R$ 0,00</strong>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-venda">Salvar Encomenda</button>
+        <button type="submit" class="btn btn-venda">Adicionar ao estoque</button>
       </form>
-
-      <h3 class="section-subtitle">Encomendas pendentes</h3>
-      <div id="resumo-encomendas" class="order-summary"></div>
-      <div class="order-toolbar">
-        <input type="search" id="busca-encomenda" placeholder="Buscar por cliente ou produto..." aria-label="Buscar encomendas">
-        <select id="filtro-encomenda" aria-label="Filtrar encomendas">
-          <option value="todas">Todas as pendentes</option>
-          <option value="atrasadas">Atrasadas</option>
-          <option value="hoje">Para hoje</option>
-          <option value="proximas">Próximos 7 dias</option>
-        </select>
-      </div>
+      <h3 class="section-subtitle">Produtos disponíveis</h3>
+      <div class="stock-summary" id="resumo-estoque"></div>
       <div class="table-responsive">
         <table>
-          <thead>
-            <tr>
-              <th>Entrega</th><th>Cliente</th><th>Produto</th><th>Quantidade</th><th>Valor previsto</th><th>Observações</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tabela-encomendas"></tbody>
+          <thead><tr><th>Produto</th><th>Pacotinhos</th><th>Peso total</th><th>Ações</th></tr></thead>
+          <tbody id="tabela-estoque"></tbody>
         </table>
       </div>
     </div>
