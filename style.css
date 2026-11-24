@@ -216,3 +216,49 @@ th {
   margin: 0;
   overflow: hidden;
 }
+
+/* Prévia de cálculo da venda por porções de 250 g */
+.form-hint {
+  color: #78350f;
+  line-height: 1.5;
+  margin: 8px 0 18px;
+  font-size: 0.95rem;
+}
+
+.form-group small {
+  color: #78350f;
+  font-size: 0.82rem;
+}
+
+.sale-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  background: #fffbe2;
+  border: 1px solid #fde68a;
+  border-radius: var(--border-radius);
+}
+
+.sale-preview > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-label {
+  color: #78350f;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.sale-preview strong {
+  color: var(--green);
+  font-size: 1.35rem;
+}
+
+@media (max-width: 480px) {
+  body { padding: 10px; }
+  .container { padding: 15px; }
+  .sale-preview strong { font-size: 1.15rem; }
+}
