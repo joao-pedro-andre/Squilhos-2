@@ -1,5 +1,5 @@
 // Versão atualizada para disponibilizar as novas funcionalidades do app.
-const CACHE_NAME = 'sequilhos-cache-v4';
+const CACHE_NAME = 'sequilhos-cache-v5';
 const assets = [
   './',
   './index.html',

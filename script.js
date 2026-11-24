@@ -1,22 +1,16 @@
 let vendas = JSON.parse(localStorage.getItem('vendas_sequilhos')) || [];
 let insumos = JSON.parse(localStorage.getItem('insumos_sequilhos')) || [];
-let encomendas = JSON.parse(localStorage.getItem('encomendas_sequilhos')) || [];
+let estoque = JSON.parse(localStorage.getItem('estoque_sequilhos')) || [];
 
 document.addEventListener('DOMContentLoaded', () => {
   const hoje = new Date().toISOString().split('T')[0];
   document.getElementById('data-venda').value = hoje;
   document.getElementById('data-insumo').value = hoje;
-  document.getElementById('data-encomenda').value = hoje;
-  document.getElementById('qtd-encomenda').addEventListener('input', atualizarPreviaEncomenda);
-  document.getElementById('valor-encomenda').addEventListener('input', atualizarPreviaEncomenda);
 
   document.getElementById('qtd-venda').addEventListener('input', atualizarPreviaVenda);
   document.getElementById('valor-venda').addEventListener('input', atualizarPreviaVenda);
 
   atualizarPreviaVenda();
-  atualizarPreviaEncomenda();
-  document.getElementById('busca-encomenda').addEventListener('input', atualizarListaEncomendas);
-  document.getElementById('filtro-encomenda').addEventListener('change', atualizarListaEncomendas);
   atualizarApp();
 });
 
@@ -68,12 +62,31 @@ document.getElementById('form-venda').addEventListener('submit', (e) => {
     return;
   }
 
+  const descricao = document.getElementById('desc-venda').value.trim();
+  const produtoEstoque = estoque.find(item => item.produto.toLocaleLowerCase('pt-BR') === descricao.toLocaleLowerCase('pt-BR'));
+  let pacotesBaixados = 0;
+  if (produtoEstoque) {
+    const pacotesExatos = pesoDigitado * 4;
+    if (Math.abs(pacotesExatos - Math.round(pacotesExatos)) > 0.000001) {
+      alert('Para descontar do estoque, a venda precisa ser em múltiplos de 250 g (0,250 kg).');
+      return;
+    }
+    pacotesBaixados = Math.round(pacotesExatos);
+    if (produtoEstoque.pacotes < pacotesBaixados) {
+      alert('Estoque insuficiente para esse produto. Disponível: ' + produtoEstoque.pacotes + ' pacotinho(s).');
+      return;
+    }
+    produtoEstoque.pacotes -= pacotesBaixados;
+  }
+
   const novaVenda = {
     id: Date.now(),
     data: document.getElementById('data-venda').value,
-    descricao: document.getElementById('desc-venda').value.trim(),
+    descricao,
     qtd: pesoDigitado,
-    precoPor250g: preco250gDigitado
+    precoPor250g: preco250gDigitado,
+    estoqueId: produtoEstoque ? produtoEstoque.id : null,
+    pacotesBaixados
   };
 
   vendas.push(novaVenda);
@@ -86,61 +99,41 @@ document.getElementById('form-venda').addEventListener('submit', (e) => {
 });
 
 
-document.getElementById('form-encomenda').addEventListener('submit', (e) => {
+document.getElementById('form-estoque').addEventListener('submit', (e) => {
   e.preventDefault();
-  const qtd = parseNumeroPreciso(document.getElementById('qtd-encomenda').value);
-  const preco = parseNumeroPreciso(document.getElementById('valor-encomenda').value);
-  const cliente = document.getElementById('cliente-encomenda').value.trim();
-  const produto = document.getElementById('produto-encomenda').value.trim();
-  if (!cliente || !produto || qtd <= 0 || preco <= 0) {
-    alert('Preencha o cliente, produto, quantidade e preço com valores válidos.');
+  const produto = document.getElementById('produto-estoque').value.trim();
+  const quantidade = Number.parseInt(document.getElementById('qtd-estoque').value, 10);
+  if (!produto || !Number.isInteger(quantidade) || quantidade <= 0) {
+    alert('Informe um produto e uma quantidade válida de pacotinhos.');
     return;
   }
-  encomendas.push({
-    id: Date.now(),
-    dataEntrega: document.getElementById('data-encomenda').value,
-    cliente,
-    produto,
-    qtd,
-    precoPor250g: preco,
-    observacoes: document.getElementById('obs-encomenda').value.trim(),
-    criadaEm: obterDataLocal(),
-    status: 'pendente'
-  });
+  const existente = estoque.find(item => item.produto.toLocaleLowerCase('pt-BR') === produto.toLocaleLowerCase('pt-BR'));
+  if (existente) {
+    existente.pacotes += quantidade;
+  } else {
+    estoque.push({ id: Date.now(), produto, pacotes: quantidade });
+  }
   salvarDados();
   atualizarApp();
-  document.getElementById('form-encomenda').reset();
-  document.getElementById('data-encomenda').value = obterDataLocal();
-  atualizarPreviaEncomenda();
+  document.getElementById('form-estoque').reset();
 });
 
-function atualizarPreviaEncomenda() {
-  const qtd = parseNumeroPreciso(document.getElementById('qtd-encomenda').value);
-  const preco = parseNumeroPreciso(document.getElementById('valor-encomenda').value);
-  document.getElementById('porcoes-encomenda').textContent =
-    (qtd > 0 ? qtd * 4 : 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-  document.getElementById('total-encomenda').textContent = formatarMoeda(qtd > 0 && preco > 0 ? qtd * 4 * preco : 0);
-}
-
-function concluirEncomenda(id) {
-  const encomenda = encomendas.find(e => e.id === id);
-  if (!encomenda || encomenda.status !== 'pendente') return;
-  if (!confirm('Marcar esta encomenda como entregue? Ela será lançada nas vendas realizadas e entrará no faturamento.')) return;
-  vendas.push({
-    id: Date.now(),
-    data: encomenda.dataEntrega || obterDataLocal(),
-    descricao: encomenda.produto + ' — ' + encomenda.cliente,
-    qtd: encomenda.qtd,
-    precoPor250g: encomenda.precoPor250g
-  });
-  encomendas = encomendas.filter(e => e.id !== id);
+function alterarEstoque(id, variacao) {
+  const item = estoque.find(p => p.id === id);
+  if (!item) return;
+  if (item.pacotes + variacao < 0) {
+    alert('O estoque não pode ficar negativo.');
+    return;
+  }
+  item.pacotes += variacao;
   salvarDados();
   atualizarApp();
 }
 
-function removerEncomenda(id) {
-  if (!confirm('Excluir esta encomenda?')) return;
-  encomendas = encomendas.filter(e => e.id !== id);
+function removerProdutoEstoque(id) {
+  const item = estoque.find(p => p.id === id);
+  if (!item || !confirm('Remover ' + item.produto + ' do estoque?')) return;
+  estoque = estoque.filter(p => p.id !== id);
   salvarDados();
   atualizarApp();
 }
@@ -170,6 +163,11 @@ document.getElementById('form-insumo').addEventListener('submit', (e) => {
 });
 
 function removerVenda(id) {
+  const venda = vendas.find(v => v.id === id);
+  if (venda && venda.estoqueId && venda.pacotesBaixados) {
+    const item = estoque.find(p => p.id === venda.estoqueId);
+    if (item) item.pacotes += venda.pacotesBaixados;
+  }
   vendas = vendas.filter(v => v.id !== id);
   salvarDados();
   atualizarApp();
@@ -184,7 +182,7 @@ function removerInsumo(id) {
 function salvarDados() {
   localStorage.setItem('vendas_sequilhos', JSON.stringify(vendas));
   localStorage.setItem('insumos_sequilhos', JSON.stringify(insumos));
-  localStorage.setItem('encomendas_sequilhos', JSON.stringify(encomendas));
+  localStorage.setItem('estoque_sequilhos', JSON.stringify(estoque));
 }
 
 function obterDataLocal() {
@@ -247,7 +245,7 @@ function atualizarApp() {
   });
 
 
-  atualizarListaEncomendas();
+  atualizarListaEstoque();
 
   const lucroLiquido = Math.round((totalVendas - totalInsumos) * 100) / 100;
   document.getElementById('total-vendas').textContent = formatarMoeda(totalVendas);
@@ -255,55 +253,29 @@ function atualizarApp() {
   document.getElementById('lucro-liquido').textContent = formatarMoeda(lucroLiquido);
 }
 
-function atualizarListaEncomendas() {
-  const tabela = document.getElementById('tabela-encomendas');
+function atualizarListaEstoque() {
+  const tabela = document.getElementById('tabela-estoque');
   if (!tabela) return;
-  const hoje = obterDataLocal();
-  const limite = new Date();
-  limite.setDate(limite.getDate() + 7);
-  const dataLimite = `${limite.getFullYear()}-${String(limite.getMonth()+1).padStart(2,'0')}-${String(limite.getDate()).padStart(2,'0')}`;
-  const pendentes = encomendas.filter(e => e.status === 'pendente');
-  const atrasadas = pendentes.filter(e => e.dataEntrega && e.dataEntrega < hoje);
-  const proximas = pendentes.filter(e => e.dataEntrega >= hoje && e.dataEntrega <= dataLimite);
-  const valorPendente = pendentes.reduce((soma, e) => soma + calcularTotalItem(e), 0);
-  document.getElementById('resumo-encomendas').innerHTML =
-    `<strong>${pendentes.length}</strong> pedido(s) pendente(s) · <strong>${formatarMoeda(valorPendente)}</strong> em vendas previstas
-    <span class="order-alerts">${atrasadas.length ? `<strong class="overdue-text">${atrasadas.length} atrasada(s)</strong>` : '<strong class="ok-text">Nenhuma atrasada</strong>'}
-    · ${proximas.length} para os próximos 7 dias</span>`;
-
-  const filtro = document.getElementById('filtro-encomenda').value;
-  const busca = document.getElementById('busca-encomenda').value.trim().toLocaleLowerCase('pt-BR');
-  const lista = pendentes.filter(e => {
-    const data = e.dataEntrega || '';
-    const correspondeBusca = `${e.cliente || ''} ${e.produto || ''}`.toLocaleLowerCase('pt-BR').includes(busca);
-    const correspondeFiltro = filtro === 'todas'
-      || (filtro === 'atrasadas' && data && data < hoje)
-      || (filtro === 'hoje' && data === hoje)
-      || (filtro === 'proximas' && data >= hoje && data <= dataLimite);
-    return correspondeBusca && correspondeFiltro;
-  }).sort((a,b) => (a.dataEntrega || '').localeCompare(b.dataEntrega || ''));
-
+  const totalPacotes = estoque.reduce((soma, item) => soma + item.pacotes, 0);
+  const pesoTotal = totalPacotes * 0.25;
+  document.getElementById('resumo-estoque').textContent =
+    totalPacotes + ' pacotinho(s) disponíveis · ' + formatarPeso(pesoTotal) + ' no total';
   tabela.innerHTML = '';
-  lista.forEach(e => {
-    const atrasada = e.dataEntrega && e.dataEntrega < hoje;
-    const dataLabel = formatarData(e.dataEntrega) + (atrasada ? ' · ATRASADA' : (e.dataEntrega === hoje ? ' · HOJE' : ''));
+  estoque.forEach(item => {
     const row = document.createElement('tr');
-    row.className = atrasada ? 'order-overdue' : '';
     row.innerHTML = `
-      <td>${escaparHTML(dataLabel)}</td>
-      <td>${escaparHTML(e.cliente)}</td>
-      <td>${escaparHTML(e.produto)}</td>
-      <td>${formatarPeso(e.qtd)}</td>
-      <td>${formatarMoeda(calcularTotalItem(e))}</td>
-      <td>${escaparHTML(e.observacoes || '—')}</td>
-      <td class="order-actions">
-        <button class="btn-complete" onclick="concluirEncomenda(${Number(e.id)})">Entregue</button>
-        <button class="btn-delete" onclick="removerEncomenda(${Number(e.id)})" aria-label="Excluir encomenda">X</button>
+      <td>${escaparHTML(item.produto)}</td>
+      <td>${item.pacotes}</td>
+      <td>${formatarPeso(item.pacotes * 0.25)}</td>
+      <td class="stock-actions">
+        <button class="btn-stock" onclick="alterarEstoque(${Number(item.id)}, 1)" aria-label="Adicionar um pacotinho">+1</button>
+        <button class="btn-stock" onclick="alterarEstoque(${Number(item.id)}, -1)" aria-label="Retirar um pacotinho">−1</button>
+        <button class="btn-delete" onclick="removerProdutoEstoque(${Number(item.id)})" aria-label="Remover produto">X</button>
       </td>`;
     tabela.appendChild(row);
   });
-  if (!lista.length) {
-    tabela.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhuma encomenda encontrada neste filtro.</td></tr>';
+  if (!estoque.length) {
+    tabela.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhum produto cadastrado no estoque.</td></tr>';
   }
 }
 
