@@ -291,3 +291,6 @@ th {
   .tab-btn { flex: 1 1 45%; font-size: .85rem; }
   .table-responsive table { min-width: 560px; }
 }
+
+.section-subtitle { margin: 28px 0 12px; }
+.empty-state { text-align: center; color: #78350f; padding: 18px; }
