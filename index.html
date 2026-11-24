@@ -13,7 +13,6 @@
  <header class="header-container">
   <img src="logo.jpg" alt="Sequilhos Lua Bela" class="brand-header-img">
 </header>
-    <!-- Cards de Resumo Financeiro -->
     <section class="dashboard">
       <div class="card card-vendas">
         <h3>Total Vendido</h3>
@@ -29,16 +28,15 @@
       </div>
     </section>
 
-    <!-- Navegação de Abas -->
     <nav class="tabs">
       <button class="tab-btn active" onclick="openTab(event, 'vendasTab')">💰 Registrar Venda</button>
       <button class="tab-btn" onclick="openTab(event, 'insumosTab')">🛒 Registrar Insumo</button>
       <button class="tab-btn" onclick="openTab(event, 'historicoTab')">📋 Histórico Completo</button>
     </nav>
 
-    <!-- Aba 1: Vendas -->
     <div id="vendasTab" class="tab-content active">
       <h2>Nova Venda</h2>
+      <p class="form-hint">Informe o peso vendido e quanto custa cada porção de 250 g. O total será calculado automaticamente.</p>
       <form id="form-venda">
         <div class="form-group">
           <label for="data-venda">Data:</label>
@@ -49,18 +47,28 @@
           <input type="text" id="desc-venda" placeholder="Ex: Sequilho de Coco" required>
         </div>
         <div class="form-group">
-          <label for="qtd-venda">Peso (kg):</label>
-          <input type="number" id="qtd-venda" step="0.001" min="0" placeholder="Ex: 0.250 para 250g" required>
+          <label for="qtd-venda">Peso vendido (kg):</label>
+          <input type="number" id="qtd-venda" step="0.001" min="0.001" placeholder="Ex: 2 para 2 kg" required>
+          <small>Exemplos: 2 = 2 kg · 0,500 = 500 g · 0,250 = 250 g</small>
         </div>
         <div class="form-group">
-          <label for="valor-venda">Preço por kg (R$):</label>
-          <input type="number" id="valor-venda" step="0.01" min="0" placeholder="0,00" required>
+          <label for="valor-venda">Preço por 250 g (R$):</label>
+          <input type="number" id="valor-venda" step="0.01" min="0.01" placeholder="Ex: 15,00" required>
+        </div>
+        <div class="sale-preview" aria-live="polite">
+          <div>
+            <span class="preview-label">Porções de 250 g</span>
+            <strong id="porcoes-venda">0</strong>
+          </div>
+          <div>
+            <span class="preview-label">Total da venda</span>
+            <strong id="total-previa-venda">R$ 0,00</strong>
+          </div>
         </div>
         <button type="submit" class="btn btn-venda">Salvar Venda</button>
       </form>
     </div>
 
-    <!-- Aba 2: Insumos (Despesas) -->
     <div id="insumosTab" class="tab-content">
       <h2>Novo Insumo / Ingrediente</h2>
       <form id="form-insumo">
@@ -80,10 +88,8 @@
       </form>
     </div>
 
-    <!-- Aba 3: Histórico -->
     <div id="historicoTab" class="tab-content">
       <h2>Histórico de Registros</h2>
-
       <h3>Vendas Realizadas</h3>
       <div class="table-responsive">
         <table>
@@ -92,14 +98,12 @@
               <th>Data</th>
               <th>Produto</th>
               <th>Peso</th>
-              <th>Preço/kg</th>
+              <th>Preço/250 g</th>
               <th>Total</th>
               <th>Ação</th>
             </tr>
           </thead>
-          <tbody id="tabela-vendas">
-            <!-- Preenchido via JavaScript -->
-          </tbody>
+          <tbody id="tabela-vendas"></tbody>
         </table>
       </div>
 
@@ -114,9 +118,7 @@
               <th>Ação</th>
             </tr>
           </thead>
-          <tbody id="tabela-insumos">
-            <!-- Preenchido via JavaScript -->
-          </tbody>
+          <tbody id="tabela-insumos"></tbody>
         </table>
       </div>
     </div>
