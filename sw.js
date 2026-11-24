@@ -1,5 +1,5 @@
-// Altere de 'v1' para 'v2' para forçar o telemóvel a atualizar
-const CACHE_NAME = 'sequilhos-cache-v2';
+// Versão atualizada para disponibilizar as novas funcionalidades do app.
+const CACHE_NAME = 'sequilhos-cache-v3';
 const assets = [
   './',
   './index.html',
@@ -8,18 +8,24 @@ const assets = [
   './manifest.json'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(assets);
-    })
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(assets))
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
+    ).then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(response => {
-      return response || fetch(e.request);
-    })
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    caches.match(event.request).then(response => response || fetch(event.request))
   );
 });
