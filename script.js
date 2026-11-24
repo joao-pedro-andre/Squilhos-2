@@ -1,59 +1,72 @@
-
 let vendas = JSON.parse(localStorage.getItem('vendas_sequilhos')) || [];
 let insumos = JSON.parse(localStorage.getItem('insumos_sequilhos')) || [];
-
 
 document.addEventListener('DOMContentLoaded', () => {
   const hoje = new Date().toISOString().split('T')[0];
   document.getElementById('data-venda').value = hoje;
   document.getElementById('data-insumo').value = hoje;
-  
+
+  document.getElementById('qtd-venda').addEventListener('input', atualizarPreviaVenda);
+  document.getElementById('valor-venda').addEventListener('input', atualizarPreviaVenda);
+
+  atualizarPreviaVenda();
   atualizarApp();
 });
 
-
 function openTab(evt, tabName) {
   const tabContents = document.getElementsByClassName('tab-content');
-  for (let i = 0; i < tabContents.length; i++) {
-    tabContents[i].classList.remove('active');
-  }
+  for (let i = 0; i < tabContents.length; i++) tabContents[i].classList.remove('active');
 
   const tabBtns = document.getElementsByClassName('tab-btn');
-  for (let i = 0; i < tabBtns.length; i++) {
-    tabBtns[i].classList.remove('active');
-  }
+  for (let i = 0; i < tabBtns.length; i++) tabBtns[i].classList.remove('active');
 
   document.getElementById(tabName).classList.add('active');
   evt.currentTarget.classList.add('active');
 }
 
-
 function parseNumeroPreciso(valor) {
   if (typeof valor === 'number') return valor;
   if (!valor) return 0;
-  
-  const limpo = valor.toString().replace(',', '.');
-  return parseFloat(limpo) || 0;
+  return parseFloat(valor.toString().replace(',', '.')) || 0;
 }
 
+function calcularTotalItem(venda) {
+  // Novos registros usam o preço informado por porção de 250 g.
+  // Registros antigos continuam usando o preço por kg já salvo.
+  if (venda.precoPor250g !== undefined) {
+    return Math.round((venda.qtd * 4 * venda.precoPor250g) * 100) / 100;
+  }
+  return Math.round((venda.qtd * venda.valorUnitario) * 100) / 100;
+}
+
+function atualizarPreviaVenda() {
+  const peso = parseNumeroPreciso(document.getElementById('qtd-venda').value);
+  const preco250g = parseNumeroPreciso(document.getElementById('valor-venda').value);
+  const porcoes = peso > 0 ? peso * 4 : 0;
+  const total = peso > 0 && preco250g > 0 ? peso * 4 * preco250g : 0;
+
+  document.getElementById('porcoes-venda').textContent =
+    porcoes.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  document.getElementById('total-previa-venda').textContent = formatarMoeda(total);
+}
 
 document.getElementById('form-venda').addEventListener('submit', (e) => {
   e.preventDefault();
 
   const pesoDigitado = parseNumeroPreciso(document.getElementById('qtd-venda').value);
-  const precoKgDigitado = parseNumeroPreciso(document.getElementById('valor-venda').value);
+  const preco250gDigitado = parseNumeroPreciso(document.getElementById('valor-venda').value);
 
-  if (pesoDigitado <= 0 || precoKgDigitado <= 0) {
-    alert("Por favor, insira valores válidos para o peso e para o preço.");
+  if (pesoDigitado <= 0 || preco250gDigitado <= 0) {
+    alert('Por favor, insira valores válidos para o peso e para o preço por 250 g.');
     return;
   }
 
   const novaVenda = {
     id: Date.now(),
     data: document.getElementById('data-venda').value,
-    descricao: document.getElementById('desc-venda').value,
+    descricao: document.getElementById('desc-venda').value.trim(),
     qtd: pesoDigitado,
-    valorUnitario: precoKgDigitado
+    precoPor250g: preco250gDigitado
   };
 
   vendas.push(novaVenda);
@@ -61,25 +74,23 @@ document.getElementById('form-venda').addEventListener('submit', (e) => {
   atualizarApp();
 
   document.getElementById('form-venda').reset();
-  const hoje = new Date().toISOString().split('T')[0];
-  document.getElementById('data-venda').value = hoje;
+  document.getElementById('data-venda').value = new Date().toISOString().split('T')[0];
+  atualizarPreviaVenda();
 });
-
 
 document.getElementById('form-insumo').addEventListener('submit', (e) => {
   e.preventDefault();
 
   const valorInsumoDigitado = parseNumeroPreciso(document.getElementById('valor-insumo').value);
-
   if (valorInsumoDigitado <= 0) {
-    alert("Por favor, insira um valor válido para o insumo.");
+    alert('Por favor, insira um valor válido para o insumo.');
     return;
   }
 
   const novoInsumo = {
     id: Date.now(),
     data: document.getElementById('data-insumo').value,
-    descricao: document.getElementById('desc-insumo').value,
+    descricao: document.getElementById('desc-insumo').value.trim(),
     valor: valorInsumoDigitado
   };
 
@@ -88,10 +99,8 @@ document.getElementById('form-insumo').addEventListener('submit', (e) => {
   atualizarApp();
 
   document.getElementById('form-insumo').reset();
-  const hoje = new Date().toISOString().split('T')[0];
-  document.getElementById('data-insumo').value = hoje;
+  document.getElementById('data-insumo').value = new Date().toISOString().split('T')[0];
 });
-
 
 function removerVenda(id) {
   vendas = vendas.filter(v => v.id !== id);
@@ -105,33 +114,27 @@ function removerInsumo(id) {
   atualizarApp();
 }
 
-
 function salvarDados() {
   localStorage.setItem('vendas_sequilhos', JSON.stringify(vendas));
   localStorage.setItem('insumos_sequilhos', JSON.stringify(insumos));
 }
 
-
-function calcularTotalItem(peso, precoKg) {
-  return Math.round((peso * precoKg) * 100) / 100;
-}
-
-
 function formatarPeso(peso) {
   return peso.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 3 }) + ' kg';
 }
-
 
 function atualizarApp() {
   let totalVendas = 0;
   let totalInsumos = 0;
 
-  
   const tabelaVendas = document.getElementById('tabela-vendas');
   tabelaVendas.innerHTML = '';
 
   vendas.forEach(v => {
-    const totalItem = calcularTotalItem(v.qtd, v.valorUnitario);
+    const totalItem = calcularTotalItem(v);
+    const precoExibido250g = v.precoPor250g !== undefined
+      ? v.precoPor250g
+      : v.valorUnitario / 4;
     totalVendas += totalItem;
 
     const row = document.createElement('tr');
@@ -139,38 +142,33 @@ function atualizarApp() {
       <td>${formatarData(v.data)}</td>
       <td>${v.descricao}</td>
       <td>${formatarPeso(v.qtd)}</td>
-      <td>${formatarMoeda(v.valorUnitario)}/kg</td>
+      <td>${formatarMoeda(precoExibido250g)}</td>
       <td>${formatarMoeda(totalItem)}</td>
-      <td><button class="btn-delete" onclick="removerVenda(${v.id})">X</button></td>
+      <td><button class="btn-delete" onclick="removerVenda(${v.id})" aria-label="Remover venda">X</button></td>
     `;
     tabelaVendas.appendChild(row);
   });
 
-  
   const tabelaInsumos = document.getElementById('tabela-insumos');
   tabelaInsumos.innerHTML = '';
 
   insumos.forEach(i => {
     totalInsumos += i.valor;
-
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${formatarData(i.data)}</td>
       <td>${i.descricao}</td>
       <td>${formatarMoeda(i.valor)}</td>
-      <td><button class="btn-delete" onclick="removerInsumo(${i.id})">X</button></td>
+      <td><button class="btn-delete" onclick="removerInsumo(${i.id})" aria-label="Remover insumo">X</button></td>
     `;
     tabelaInsumos.appendChild(row);
   });
 
-  
   const lucroLiquido = Math.round((totalVendas - totalInsumos) * 100) / 100;
-
   document.getElementById('total-vendas').textContent = formatarMoeda(totalVendas);
   document.getElementById('total-despesas').textContent = formatarMoeda(totalInsumos);
   document.getElementById('lucro-liquido').textContent = formatarMoeda(lucroLiquido);
 }
-
 
 function formatarMoeda(valor) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
