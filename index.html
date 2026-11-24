@@ -113,6 +113,15 @@
 
       <h3 class="section-subtitle">Encomendas pendentes</h3>
       <div id="resumo-encomendas" class="order-summary"></div>
+      <div class="order-toolbar">
+        <input type="search" id="busca-encomenda" placeholder="Buscar por cliente ou produto..." aria-label="Buscar encomendas">
+        <select id="filtro-encomenda" aria-label="Filtrar encomendas">
+          <option value="todas">Todas as pendentes</option>
+          <option value="atrasadas">Atrasadas</option>
+          <option value="hoje">Para hoje</option>
+          <option value="proximas">Próximos 7 dias</option>
+        </select>
+      </div>
       <div class="table-responsive">
         <table>
           <thead>

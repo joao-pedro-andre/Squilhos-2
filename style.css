@@ -293,3 +293,29 @@ th {
   .table-responsive table { min-width: 680px; }
   .order-summary { font-size: .9rem; }
 }
+
+
+/* Busca, filtros e alertas de prazo das encomendas */
+.order-toolbar {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(160px, 1fr);
+  gap: 10px;
+  margin: 14px 0;
+}
+.order-toolbar input, .order-toolbar select {
+  width: 100%;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid #d6b779;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-color);
+  font-size: .95rem;
+}
+.order-alerts { display: block; margin-top: 6px; font-size: .9rem; }
+.overdue-text { color: var(--red); }
+.ok-text { color: var(--green); }
+.order-overdue td:first-child { color: var(--red); font-weight: 700; }
+@media (max-width: 480px) {
+  .order-toolbar { grid-template-columns: 1fr; }
+}
